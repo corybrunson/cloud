@@ -9,10 +9,10 @@ barycenter <-
     function(cloud, weights) {
         
         # If w is missing...
-        if(missing(weights)) weights <- rep(1, nrow(cloud))
+        if (missing(weights)) weights <- rep(1, nrow(cloud))
         # If w is a scalar...
-        if(length(weights) == 1) weights <- rep(weights, nrow(cloud))
+        if (length(weights) == 1) weights <- rep(weights, nrow(cloud))
         
         # Calculate barycenter
-        colSums(cloud * weights) / sum(weights)
+        matrix(colSums(cloud * weights) / sum(weights), nrow = 1)
     }

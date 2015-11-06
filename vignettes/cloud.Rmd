@@ -1,0 +1,77 @@
+---
+title: "Euclidean Cloud"
+author: "Cory Brunson"
+date: "November 6, 2015"
+output: pdf_document
+---
+
+This vignette (loosely or closely?) follows the treatment in Chapter 3 of [Le Roux and Rouanet's *Geometric Data Analysis*](http://www.springer.com/us/book/9781402022357), with drastically simplified exposition but employing the same example data.
+
+```{r, echo=FALSE, results=FALSE}
+devel = TRUE
+if (devel) {
+    library(devtools)
+    load_all()
+} else {
+    library(cloud)
+}
+```
+
+The central object of GDA is a point cloud in a Euclidean space, which encodes a set of statistical observations arranged in a table, or two-dimensional array (for instance, a contingency table in Correspondence Analysis or an Individuals--Variables table in Principal Components Analysis). By convention, the columns of the table correspond to the coordinate axes of the Euclidean space while the rows correspond to the points.
+
+## 3.1 Basic Statistics
+
+Rigorously, a *point cloud* in a Euclidean space $\mathcal{U}$ consists of a set $J$ of labels and a mapping $M^J:J\to\mathcal{U}$ that takes each label $j\in J$ to its corresponding point $M^j\in\mathcal{U}$.
+
+As a running example, we load the *Target example* dataset, used throughout the chapter, whose coordinates are provided in Exercise 3.4:
+
+```{r}
+data(Target)
+print(Target)
+class(Target)
+```
+
+```{r, echo=FALSE, results=FALSE}
+plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
+     Target, pch = 16,
+     xlab = "", ylab = "")
+text(Target, labels = rownames(Target), pos = 1)
+rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
+legend(x = -19, y = 19, box.lty = 0, legend = "Target example")
+```
+
+The labels consist of $j_1$ through $j_{10}$. Because these data occupy two dimensions, i.e. the labels are mapped into $\mathcal{U}=\mathbb{R}^2$, they constitute a *plane cloud*.
+
+### 3.1.1 Mean Point
+
+The *mean point* of the cloud $M^J$ in $\mathcal{U}$ is meant to be a proxy point location for the entire cloud. Given an arbitrary point $P\in\mathcal{U}$, the mean point is defined as the point arrived to from $P$ via the sum of the vectors $\overrightarrow{PM^j}$ from $P$ to each point $M^j$---that is, as the (unique!) point $G\in\mathcal{U}$ for which $$\overrightarrow{PG}=\sum_{j\in J}\overrightarrow{PM^j}$$ doesn't depend on the choice of point $P\in\mathcal{U}$. The mean point satisfies the *Barycentric property* that $$\sum_{j\in J}\overrightarrow{GM^j}=\overrightarrow{0},$$ which can be checked by substituting $P=G$ in the definition.[^1]
+
+```{r}
+Target_barycenter <- barycenter(Target)
+print(Target_barycenter)
+```
+
+```{r, echo=FALSE, results=FALSE}
+# Vectors from barycenter to each point
+Target_vectors <- Target - do.call(rbind,
+                                   replicate(nrow(Target),
+                                             Target_barycenter,
+                                             simplify = FALSE))
+# Plot barycenter and vectors therefrom to points in cloud
+plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
+     x = c(), y = c(),
+     xlab = "", ylab = "")
+text(Target_barycenter, labels = "G", adj = c(1.5, 1.25))
+for (i in 1:nrow(Target)) {
+    text(Target[i, , drop = FALSE], labels = rownames(Target)[i],
+         adj = .5 - (Target_vectors[i, ] / sqrt(sum(Target_vectors[i, ] ^ 2))))
+}
+arrows(x0 = Target_barycenter[, 1], y0 = Target_barycenter[, 2],
+       x1 = Target[, 1], y1 = Target[, 2],
+       length = .2, angle = 15)
+rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
+legend(x = -19, y = 19, box.lty = 0,
+       legend = "Target: barycentric characterization")
+```
+
+[^1]: These and other formulas are given in more general terms in *GDA*, in which the points $M^j$ are weighted by masses $\omega_j$. I may be forced to adopt this generality, but i haven't yet.
