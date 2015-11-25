@@ -5,7 +5,6 @@
 #' @param cloud An m-by-n matrix of coordinates for m points in n-dimensional space.
 #' @param subspace An k-by-n matrix of coordinates spanning the (k - 1)-dimensional
 #'   affine subspace.
-#' @export
 
 affine.projection <-
     function(cloud, subspace) {

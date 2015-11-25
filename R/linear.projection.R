@@ -5,7 +5,6 @@
 #' @param cloud An m-by-n matrix of coordinates for m points in n-dimensional space.
 #' @param subspace An k-by-n matrix of coordinates spanning, together with the origin,
 #'   the h-dimensional linear subspace.
-#' @export
 
 linear.projection <-
     function(cloud, subspace) {

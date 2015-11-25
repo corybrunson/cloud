@@ -8,12 +8,11 @@
 #' @param weights An m-element vector of point masses (weights).
 #' @param subspace An k-by-n matrix of coordinates spanning the k-dimensional
 #'   linear subspace or (k - 1)-dimensional affine subspace.
-#' @param type Whether to interpret h as an affine or a linear subspace. 
-#'   Defaults to "affine".
+#' @param ... Additional arguments passed to \code{\link{cloud.decomposition}}.
 #' @export
 
 cloud.variance.test <-
-    function(cloud, weights, subspace, type = "affine") {
+    function(cloud, weights, subspace, ...) {
         
         # If weights is missing...
         if(missing(weights)) weights <- rep(1, nrow(cloud))
@@ -22,7 +21,7 @@ cloud.variance.test <-
         
         # Decompose x into its fitted and residual clouds.
         decomp <- cloud.decomposition(cloud = cloud, subspace = subspace,
-                                      resid = "cloud", type = type)
+                                      resid = "cloud", ...)
         
         # Left side
         lhs <- variance(cloud = cloud, weights = weights)

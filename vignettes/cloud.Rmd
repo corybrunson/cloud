@@ -1,37 +1,41 @@
 ---
 title: "Euclidean Cloud"
-author: "Cory Brunson"
+author: "Cory Brunson, from Brigitte Le Roux and Henry Rouanet"
 date: "November 6, 2015"
 output: pdf_document
 ---
 
 This vignette (loosely or closely?) follows the treatment in Chapter 3 of [Le Roux and Rouanet's *Geometric Data Analysis*](http://www.springer.com/us/book/9781402022357), with drastically simplified exposition but employing the same example data.
 
-```{r, echo=FALSE, results=FALSE}
+```{r, echo=FALSE, results=FALSE, message=FALSE, warning=FALSE}
+library(devtools)
 devel = TRUE
 if (devel) {
-    library(devtools)
-    load_all()
+    load_all("~/Documents/edu/R/cloud")
 } else {
+    install_github("corybrunson/cloud")
     library(cloud)
 }
+library(knitr)
+opts_chunk$set(echo=FALSE, results=FALSE, message=FALSE, warning=FALSE)
 ```
 
 The central object of GDA is a point cloud in a Euclidean space, which encodes a set of statistical observations arranged in a table, or two-dimensional array (for instance, a contingency table in Correspondence Analysis or an Individuals--Variables table in Principal Components Analysis). By convention, the columns of the table correspond to the coordinate axes of the Euclidean space while the rows correspond to the points.
 
 ## 3.1 Basic Statistics
 
-Rigorously, a *point cloud* in a Euclidean space $\mathcal{U}$ consists of a set $J$ of labels and a mapping $M^J:J\to\mathcal{U}$ that takes each label $j\in J$ to its corresponding point $M^j\in\mathcal{U}$.
+Rigorously, a *point cloud* in a Euclidean space $\mathcal{U}$ consists of a set $J$ of labels and a mapping $M^J:J\to\mathcal{U}$ that takes each label $j\in J$ to its corresponding point $M^j\in\mathcal{U}$. The points are assigned positive weights $\omega_j$, which may be assumed unitary when not specified. The most common weights will be absolute frequencies $n_j$, $n=\sum_{j\in J}n_j$, and their associated relative frequencies $f_j=\frac{n_j}{n}$.
 
 As a running example, we load the *Target example* dataset, used throughout the chapter, whose coordinates are provided in Exercise 3.4:
 
-```{r}
+```{r, echo=TRUE}
 data(Target)
 print(Target)
-class(Target)
+print(class(Target))
+T_freq <- rep(1 / nrow(Target), nrow(Target))
 ```
 
-```{r, echo=FALSE, results=FALSE}
+```{r}
 plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
      Target, pch = 16,
      xlab = "", ylab = "")
@@ -44,34 +48,177 @@ The labels consist of $j_1$ through $j_{10}$. Because these data occupy two dime
 
 ### 3.1.1 Mean Point
 
-The *mean point* of the cloud $M^J$ in $\mathcal{U}$ is meant to be a proxy point location for the entire cloud. Given an arbitrary point $P\in\mathcal{U}$, the mean point is defined as the point arrived to from $P$ via the sum of the vectors $\overrightarrow{PM^j}$ from $P$ to each point $M^j$---that is, as the (unique!) point $G\in\mathcal{U}$ for which $$\overrightarrow{PG}=\sum_{j\in J}\overrightarrow{PM^j}$$ doesn't depend on the choice of point $P\in\mathcal{U}$. The mean point satisfies the *Barycentric property* that $$\sum_{j\in J}\overrightarrow{GM^j}=\overrightarrow{0},$$ which can be checked by substituting $P=G$ in the definition.[^1]
+The *mean point* of the cloud $M^J$ in $\mathcal{U}$ is meant to be a proxy point location for the entire cloud. Given an arbitrary point $P\in\mathcal{U}$, the mean point is defined as the point arrived to from $P$ via the sum of the weighted vectors $f_j\overrightarrow{PM^j}$ from $P$ to each point $M^j$---that is, as the (unique!) point $G\in\mathcal{U}$ for which $$\overrightarrow{PG}=\sum_{j\in J}f_j\overrightarrow{PM^j}$$ doesn't depend on the choice of point $P\in\mathcal{U}$. The mean point satisfies the *Barycentric property* that $$\sum_{j\in J}f_j\overrightarrow{GM^j}=\overrightarrow{0},$$ which can be checked by substituting $P=G$ in the definition.[^1]
 
-```{r}
-Target_barycenter <- barycenter(Target)
-print(Target_barycenter)
+```{r, echo=TRUE}
+G <- barycenter(Target)
+print(G)
 ```
 
-```{r, echo=FALSE, results=FALSE}
+```{r}
 # Vectors from barycenter to each point
-Target_vectors <- Target - do.call(rbind,
+T_vectors <- Target - do.call(rbind,
                                    replicate(nrow(Target),
-                                             Target_barycenter,
+                                             G,
                                              simplify = FALSE))
 # Plot barycenter and vectors therefrom to points in cloud
 plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
      x = c(), y = c(),
      xlab = "", ylab = "")
-text(Target_barycenter, labels = "G", adj = c(1.5, 1.25))
+text(G, labels = "G", adj = c(1.5, 1.25))
 for (i in 1:nrow(Target)) {
     text(Target[i, , drop = FALSE], labels = rownames(Target)[i],
-         adj = .5 - (Target_vectors[i, ] / sqrt(sum(Target_vectors[i, ] ^ 2))))
+         adj = .5 - (T_vectors[i, ] / sqrt(sum(T_vectors[i, ] ^ 2))))
 }
-arrows(x0 = Target_barycenter[, 1], y0 = Target_barycenter[, 2],
+arrows(x0 = G[, 1], y0 = G[, 2],
        x1 = Target[, 1], y1 = Target[, 2],
-       length = .2, angle = 15)
+       length = .15, angle = 15)
 rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
 legend(x = -19, y = 19, box.lty = 0,
        legend = "Target: barycentric characterization")
 ```
 
 [^1]: These and other formulas are given in more general terms in *GDA*, in which the points $M^j$ are weighted by masses $\omega_j$. I may be forced to adopt this generality, but i haven't yet.
+
+### 3.1.2 Inertia, Sum of Squares, Variance and Contributions
+
+The *inertia* of a cloud $M^J$ with respect to a point $P$ is defined, as in other settings, as the sum-squared distance of each point $M^j$ from $P$: $${In}^PM^J=\sum_{j\in J}{In}_j^P=\sum_{j\in J}\omega_j(PM^j)^2.$$ The inertia for $\omega_j=n_j$ is the *sum of squares* and that for $\omega_j=f_j$ is the *mean of squares*. The *variance* of the cloud is its mean of squares from its barycenter, and can be interpreted as the sum of the *absolute contributions* of the individual points in the cloud: $${Var}M^J=\sum_{j\in J}{Cta}_j=\sum_{j\in J}f_j(GM^j)^2.$$ The *relative contributions of the points are, then, the fractions ${Ctr}_j=\frac{{Cta}_j}{{Var}M^J}$.
+
+```{r, echo=TRUE}
+P <- c(0, 0)
+P_in <- inertia(point = P, cloud = Target)
+G_in <- inertia(point = G, cloud = Target)
+T_var <- inertia(G, cloud = Target,
+                           weights = T_freq)
+print(c(center_inertia = P_in,
+        barycenter_inertia = G_in,
+        variance = T_var))
+```
+
+```{r, echo=TRUE}
+Ctas <- T_freq * apply(Target, 1, function(m) {
+    sum((m - G) ^ 2)
+})
+Ctrs <- Ctas / T_var
+print(cbind(Ctas, Ctrs))
+```
+
+The **first Huyghen's theorem** states that the inertia of a cloud $M^J$ with respect to a point $P$ can be decomposed into the sum of the variance of the cloud (its inertia with respect to its barycenter $G$) and the squared distance between $G$ and $P$: $$\sum_{j\in J}f_j(PM^j)^2=(PG)^2+\sum_{j\in J}f_j(GM^j)^2.$$ (See the illustration below.) A consequence is the *metric characterization of the barycenter*, which has that the barycenter minimizes the mean of squares of the cloud. That is, across $P\in\mathcal{U}$, the quantity $\sum_{j\in J}f_j(PM^j)^2$ is minimized when $P=G$.
+
+```{r, echo=TRUE}
+huyghen.test(point = P, cloud = Target, weights = T_freq)
+huyghen.test(point = G, cloud = Target, weights = T_freq)
+```
+
+```{r}
+# Three plots!
+par(mfrow = c(1, 3))
+# Plot points relative to center
+plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
+     Target, pch = 16,
+     xlab = "", ylab = "")
+segments(x0 = 0, y0 = 0, x1 = Target[, 1], y1 = Target[, 2])
+text(x = P[1], y = P[2], labels = "P",
+     adj = c(sqrt(2), sqrt(2)))
+rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
+# Plot center relative to barycenter
+plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
+     x = c(), y = c(),
+     xlab = "", ylab = "")
+points(rbind(P, G),
+       pch = c(13, 21), bg = c("white", "grey"), cex = 2)
+segments(x0 = P[1], y0 = P[2],
+         x1 = G[1], y1 = G[2])
+text(x = rbind(P, G),
+     labels = c("P", "G"), adj = c(1, -1))
+rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
+# Plot points relative to barycenter
+plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
+     Target, pch = 16,
+     xlab = "", ylab = "")
+segments(x0 = G[1], y0 = G[2],
+         x1 = Target[, 1], y1 = Target[, 2])
+text(x = G[1], y = G[2], labels = "G",
+     adj = c(sqrt(3), 1))
+rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
+# Reset
+par(mfrow = c(1, 1))
+```
+
+## 3.2 Projected Clouds
+
+The *(orthogonal) projection* of a point cloud $M^J$ in a space $\mathcal{U}$ onto a subspace $\mathcal{H}$ is the cloud $H^J=\{H^j\}_{j\in J}$ consisting of its points' projections, and called the *projected cloud*. An important property of the projected cloud is that its barycenter $G'$ is the projection of the barycenter $G$ of $M^J$.
+
+### 3.2.1 Variance in a Direction
+
+The variances of the projected clouds of $M^J$ onto two equidimensional parallel subspaces $\mathcal{H}$ and $\mathcal{H}'$ are equal, and are called the *variance in the direction* of $\mathcal{H}$ (or of $\mathcal{H}'$). A special case is the variance in the direction of a line, which is equal to $$\sum_{j\in J}f_j\frac{\langle\overrightarrow{GM}^j\mid\overrightarrow{\alpha}\rangle^2}{\|\overrightarrow{\alpha}\|^2}$$ and is called the *variance of axis*.
+
+```{r, echo=TRUE}
+axis <- rbind(c(0, 0), c(2, 1))
+axis_var <- direction.variance(cloud = Target, weights = T_freq,
+                               subspace = axis)
+print(axis_var)
+print(direction.variance(cloud = Target, weights = T_freq,
+                         subspace = affine.decomposition(axis)$linear.subspace,
+                         type = "linear"))
+```
+
+```{r}
+# Three plots!
+par(mfrow = c(1, 2))
+# Plot cloud, axis, and residual segments
+plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
+     Target, pch = 16,
+     xlab = "", ylab = "")
+points(x = P[1], y = P[2], pch = 13, cex = 2)
+m <- diff(axis[, 2]) / diff(axis[, 1])
+abline(a = axis[1, 2] - m * axis[1, 1], b = m, lty = 2)
+rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
+# Plot center relative to barycenter
+plot(xlim = c(-19, 19), ylim = c(-19, 19), axes = FALSE, asp = 1,
+     x = c(), y = c(),
+     xlab = "", ylab = "")
+points(rbind(P, G),
+       pch = c(13, 21), bg = c("white", "grey"), cex = 2)
+segments(x0 = P[1], y0 = P[2],
+         x1 = G[1], y1 = G[2])
+text(x = rbind(P, G),
+     labels = c("P", "G"), adj = c(1, -1))
+rect(xleft = -19, xright = 19, ybottom = -19, ytop = 19, lty = 3)
+# Plot cloud, new axis, and new residual segments
+
+# Reset
+par(mfrow = c(1, 1))
+```
+
+### 3.2.2 Residual Square Mean
+
+The first Huyghen's theorem can be extended from "point" variance to directional variance by way of projection: Given a cloud $M^J$ and a subspace $\mathcal{H}$, the *residual square mean* $$\sum_{j\in J}f_j(M^jH^j)^2$$ of $M^J$ with respect to $\mathcal{H}$ is the weighted mean of the squares of the "residuals" $M^jH^j$---the distances from the points of $M^J$ to their projections in $H^J$. The **general Huyghen's theorem** then states that the residual square mean with respect to $\mathcal{H}$ can be decomposed into the sum of the residual square mean with respect to a same-dimensional parallel space $\mathcal{H}'$ through the barycenter $G$ of $M^J$ and the squared distance from $G$ to $\mathcal{H}$: $$\sum_{j\in J}f_j(M^jH^j)^2=\sum_{j\in J}f_j(M^jA^j)^2+(GG')^2,$$ where $G'$ is the projection of $G$ onto $\mathcal{H}$.
+
+```{r, echo=TRUE}
+huyghen.general.test(cloud = Target, weights = T_freq, subspace = axis)
+```
+
+### 3.2.3 Fitted and Residual Clouds
+
+When a projected cloud $A^J$ (in a subspace $\mathcal{A}$) is used to model its preimage $M^J$, it is called a *fitted cloud*, and the vectors $\overrightarrow{A^jM^j}$, whose lengths are the residuals mentioned above, are called *residual deviations*. This leads to the geometric data--model--error formulation $$\forall j\in J\ \ M^j=A^j+\overrightarrow{A^jM^j},$$ where each $\overrightarrow{A^jM^j}$ is orthogonal to $\mathcal{A}$. Consequently, the cloud $R^J$ consisting of points $R^j=G'+\overrightarrow{H^jM^j}$ (where $G'$, as above, is the barycenter of $H^J$) depends only on the choice of $\mathcal{H}$. $R^J$ is called the *residual cloud*, and it is constructed so that $G$ is its barycenter. This yields the orthogonal decomposition $$\overrightarrow{GM^j}=\overrightarrow{GA^j}+\overrightarrow{GR^j}.$$
+
+It is straightforward to check that the variance of $R^J$ equals the residual square mean of $M^J$ with respect to $\mathcal{A}$. The distance formula, applied pointwise to the orthogonal decomposition, then yields the variance decomposition $${Var}M^J={Var}A^J+{Var}R^J$$ into the cloud's *total variance*, its *fitted variance*, and its *residual variance*.
+
+```{r, echo=TRUE}
+cloud.decomposition(cloud = Target, subspace = axis)
+cloud.variance.test(cloud = Target, weights = T_freq, subspace = axis)
+```
+
+### 3.2.4 Variables Attached to an Axis
+
+The linear formulation in the next section relies on several coordinatization schemes. Begin with an axis $(G,\overrightarrow{\alpha})$, through the barycenter of $M^J$ in the direction of $\overrightarrow{\alpha}$, and the projected cloud $A^J$ onto this axis. We then define four centered (having mean point zero) variables:
+
+- The *covariant variable* $\alpha^J=(\alpha^j)_{j\in J}$ has *covariant coordinates* $\alpha^j=\langle\overrightarrow{GM^j}\mid\overrightarrow{\alpha}\rangle$ and variance ${Var}A^J\|\overrightarrow{\alpha}\|^2$. The term refers to the fact that these coordinates scale with $\overrightarrow{\alpha}$.
+- The *calibrated variable* $y^J=(y^j)_{j\in J}$ has *calibrated coordinates* $y^j=\alpha^j/\|\overrightarrow{\alpha}\|$ and variance ${Var}A^J$.
+- The *standard variable* $z^J=(z^j)_{j\in J}$ has *standard coordinates* $z^j=y^j/SDy^J$ and variance 1.
+- The *axial variable* $t^J=(t^j)_{j\in J}$ has *axial coordinates* $t^j=\langle\overrightarrow{GM^j}\mid\overrightarrow{\alpha}\rangle/\|\overrightarrow{\alpha}\|^2$ and variance ${Var}t^J=A^J/\|\overrightarrow{\alpha}\|^2$. The $t^j$ are the projections---*GDA* calls them the coordinates---of the $A^j$ onto $(G,\overrightarrow{\alpha})$.
+
+```{r}
+
+```

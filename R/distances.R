@@ -9,8 +9,8 @@ distances <-
     function(x, y, ...) {
         
         # Difference matrix
-        dists <- (x - y) ^ 2
+        sq.dists <- (x - y) ^ 2
         
         # Square roots of row sums
-        sqrt(rowSums(dists))
+        sqrt(rowSums(sq.dists))
     }
