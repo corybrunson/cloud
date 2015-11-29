@@ -5,7 +5,7 @@
 #' @param subspace An k-by-n matrix (or n-coordinate vector when k equals 1) of coordinates spanning the k-dimensional linear subspace.
 #' @export
 
-affine.recomposition <-
+affine_recomposition <-
     function(point, subspace) {
         
         rbind(0, subspace) + rep(point, each = nrow(subspace) + 1)

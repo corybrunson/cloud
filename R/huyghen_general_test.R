@@ -9,7 +9,7 @@
 #' @param ... Additional arguments (eventually) passed to \code{\link{projection}}.
 #' @export
 
-huyghen.general.test <-
+huyghen_general_test <-
     function(cloud, weights, subspace, ...) {
         
         # If weights is missing...
@@ -18,21 +18,21 @@ huyghen.general.test <-
         if(length(weights) == 1) weights <- rep(weights, nrow(cloud))
         
         # Left side
-        lhs <- residual.square.mean(cloud = cloud, weights = weights,
+        lhs <- residual_square_mean(cloud = cloud, weights = weights,
                                     subspace = subspace, ...)
         
         # Calculate the barycenter of cloud
         bc <- barycenter(cloud)
         
         # Decompose subspace
-        decomp <- affine.decomposition(subspace)
+        decomp <- affine_decomposition(subspace)
         
         # Describe the affine subspace through bc
-        parallel.subspace <- affine.recomposition(bc, decomp$linear.subspace)
+        parallel_subspace <- affine_recomposition(bc, decomp$linear_subspace)
         
         # Right side
-        rhs <- residual.square.mean(cloud = cloud, weights = weights,
-                                    subspace = parallel.subspace,
+        rhs <- residual_square_mean(cloud = cloud, weights = weights,
+                                    subspace = parallel_subspace,
                                     type = "affine") +
             distance(bc, projection(bc, subspace, ...)) ^ 2
         

@@ -10,22 +10,22 @@
 #' @param ... Additional arguments passed to \code{\link{projection}}.
 #' @export
 
-cloud.decomposition <-
+cloud_decomposition <-
     function(cloud, subspace, resid = "cloud", ...) {
         
         # Calculate projection
         proj <- projection(cloud = cloud, subspace = subspace, ...)
         
         # Calculate residual deviations
-        res.dev <- cloud - proj
+        res_dev <- cloud - proj
         
         # Return projection and residuals
         if(resid == "deviations") {
-            list(fitted.cloud = proj, residual.deviations = res.dev)
+            list(fitted_cloud = proj, residual_deviations = res_dev)
         } else if (resid == "cloud") {
             bc <- barycenter(cloud)
-            list(fitted.cloud = proj,
-                 residual.cloud = res.dev + rep(bc, each = nrow(res.dev)))
+            list(fitted_cloud = proj,
+                 residual_cloud = res_dev + rep(bc, each = nrow(res_dev)))
         } else {
             stop("Residuals can only be returned as deviations or as a cloud.")
         }

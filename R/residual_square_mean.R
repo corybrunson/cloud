@@ -9,7 +9,7 @@
 #' @param ... Additional arguments passed to \code{\link{projection}}.
 #' @export
 
-residual.square.mean <-
+residual_square_mean <-
     function(cloud, weights, subspace, ...) {
         
         # If cloud is a vector...
@@ -29,8 +29,8 @@ residual.square.mean <-
         proj <- projection(cloud = cloud, subspace = subspace, ...)
         
         # Calculate squared distances
-        sq.dists <- distances(cloud, proj) ^ 2
+        sq_dists <- distances(cloud, proj) ^ 2
         
         # Weighted mean of squared distances
-        sum(weights * sq.dists) / sum(weights)
+        sum(weights * sq_dists) / sum(weights)
     }

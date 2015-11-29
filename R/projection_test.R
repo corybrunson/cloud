@@ -8,7 +8,7 @@
 #' @param ... Additional arguments passed to \code{\link{projection}}.
 #' @export
 
-projection.test <-
+projection_test <-
     function(cloud, subspace, ...) {
         
         # Left side

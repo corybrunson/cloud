@@ -106,8 +106,8 @@ print(cbind(Ctas, Ctrs))
 The **first Huyghen's theorem** states that the inertia of a cloud $M^J$ with respect to a point $P$ can be decomposed into the sum of the variance of the cloud (its inertia with respect to its barycenter $G$) and the squared distance between $G$ and $P$: $$\sum_{j\in J}f_j(PM^j)^2=(PG)^2+\sum_{j\in J}f_j(GM^j)^2.$$ (See the illustration below.) A consequence is the *metric characterization of the barycenter*, which has that the barycenter minimizes the mean of squares of the cloud. That is, across $P\in\mathcal{U}$, the quantity $\sum_{j\in J}f_j(PM^j)^2$ is minimized when $P=G$.
 
 ```{r, echo=TRUE}
-huyghen.test(point = P, cloud = Target, weights = T_freq)
-huyghen.test(point = G, cloud = Target, weights = T_freq)
+huyghen_test(point = P, cloud = Target, weights = T_freq)
+huyghen_test(point = G, cloud = Target, weights = T_freq)
 ```
 
 ```{r}
@@ -155,11 +155,11 @@ The variances of the projected clouds of $M^J$ onto two equidimensional parallel
 
 ```{r, echo=TRUE}
 axis <- rbind(c(0, 0), c(2, 1))
-axis_var <- direction.variance(cloud = Target, weights = T_freq,
+axis_var <- direction_variance(cloud = Target, weights = T_freq,
                                subspace = axis)
 print(axis_var)
-print(direction.variance(cloud = Target, weights = T_freq,
-                         subspace = affine.decomposition(axis)$linear.subspace,
+print(direction_variance(cloud = Target, weights = T_freq,
+                         subspace = affine_decomposition(axis)$linear_subspace,
                          type = "linear"))
 ```
 
@@ -196,7 +196,7 @@ par(mfrow = c(1, 1))
 The first Huyghen's theorem can be extended from "point" variance to directional variance by way of projection: Given a cloud $M^J$ and a subspace $\mathcal{H}$, the *residual square mean* $$\sum_{j\in J}f_j(M^jH^j)^2$$ of $M^J$ with respect to $\mathcal{H}$ is the weighted mean of the squares of the "residuals" $M^jH^j$---the distances from the points of $M^J$ to their projections in $H^J$. The **general Huyghen's theorem** then states that the residual square mean with respect to $\mathcal{H}$ can be decomposed into the sum of the residual square mean with respect to a same-dimensional parallel space $\mathcal{H}'$ through the barycenter $G$ of $M^J$ and the squared distance from $G$ to $\mathcal{H}$: $$\sum_{j\in J}f_j(M^jH^j)^2=\sum_{j\in J}f_j(M^jA^j)^2+(GG')^2,$$ where $G'$ is the projection of $G$ onto $\mathcal{H}$.
 
 ```{r, echo=TRUE}
-huyghen.general.test(cloud = Target, weights = T_freq, subspace = axis)
+huyghen_general_test(cloud = Target, weights = T_freq, subspace = axis)
 ```
 
 ### 3.2.3 Fitted and Residual Clouds
@@ -206,8 +206,8 @@ When a projected cloud $A^J$ (in a subspace $\mathcal{A}$) is used to model its 
 It is straightforward to check that the variance of $R^J$ equals the residual square mean of $M^J$ with respect to $\mathcal{A}$. The distance formula, applied pointwise to the orthogonal decomposition, then yields the variance decomposition $${Var}M^J={Var}A^J+{Var}R^J$$ into the cloud's *total variance*, its *fitted variance*, and its *residual variance*.
 
 ```{r, echo=TRUE}
-cloud.decomposition(cloud = Target, subspace = axis)
-cloud.variance.test(cloud = Target, weights = T_freq, subspace = axis)
+cloud_decomposition(cloud = Target, subspace = axis)
+cloud_variance_test(cloud = Target, weights = T_freq, subspace = axis)
 ```
 
 ### 3.2.4 Variables Attached to an Axis

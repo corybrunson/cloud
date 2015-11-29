@@ -6,19 +6,19 @@
 #'   1)-dimensional affine subspace.
 #' @export
 
-affine.decomposition <-
+affine_decomposition <-
     function(subspace) {
         
         # Calculate a basis for the parallel linear subspace
-        lin.subspace <- subspace[-1, , drop = FALSE] -
+        lin_subspace <- subspace[-1, , drop = FALSE] -
             rep(subspace[1, , drop = TRUE], each = nrow(subspace) - 1)
         
         # Calculate the projection of the first point to hh
-        proj <- linear.projection(subspace[1, , drop = TRUE], lin.subspace)
+        proj <- linear_projection(subspace[1, , drop = TRUE], lin_subspace)
         
         # Calculate the orthogonal vector from the origin to h
         vec <- subspace[1, , drop = TRUE] - proj
         
         # Return the parallel linear subspace and the orthogonal vector
-        list(linear.subspace = lin.subspace, orthogonal.vector = vec)
+        list(linear_subspace = lin_subspace, orthogonal_vector = vec)
     }

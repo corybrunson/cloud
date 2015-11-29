@@ -13,9 +13,9 @@ projection <-
     function(cloud, subspace, type = "affine", ...) {
         
         if(type == "affine") {
-            affine.projection(cloud, subspace)
+            affine_projection(cloud, subspace)
         } else if(type == "linear") {
-            linear.projection(cloud, subspace)
+            linear_projection(cloud, subspace)
         } else {
             stop("Only linear and affine types recognized.")
         }

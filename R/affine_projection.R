@@ -6,7 +6,7 @@
 #' @param subspace An k-by-n matrix of coordinates spanning the (k - 1)-dimensional
 #'   affine subspace.
 
-affine.projection <-
+affine_projection <-
     function(cloud, subspace) {
         
         # If cloud is a vector...
@@ -18,17 +18,17 @@ affine.projection <-
         }
         
         # Decompose subspace into a linear subspace and an orthogonal vector
-        decomp <- affine.decomposition(subspace)
+        decomp <- affine_decomposition(subspace)
         
         # Calculate projections to the linear subspace
-        lin.proj <- linear.projection(cloud, decomp$linear.subspace)
+        lin_proj <- linear_projection(cloud, decomp$linear_subspace)
         
         # Translate proj along the orthogonal vector
-        aff.proj <- lin.proj + rep(decomp$orthogonal.vector,
-                                   each = nrow(lin.proj))
+        aff_proj <- lin_proj + rep(decomp$orthogonal_vector,
+                                   each = nrow(lin_proj))
         
         # If cloud was a vector...
-        if(vectorInput) aff.proj <- as.vector(aff.proj)
+        if(vectorInput) aff_proj <- as.vector(aff_proj)
         
-        aff.proj
+        aff_proj
     }

@@ -8,14 +8,14 @@
 #' @param ... Additional arguments passed to \code{\link{projection}}.
 #' @export
 
-direction.variance <-
+direction_variance <-
     function(cloud, weights, subspace, subspace_type = "linear", ...) {
         
         # If subspace is affine, linearize it
         subspace_type <- match.arg(subspace_type,
                                    c("linear", "affine"))
         if (subspace_type == "affine") {
-            subspace <- affine.decomposition(subspace)$linear.subspace
+            subspace <- affine_decomposition(subspace)$linear_subspace
         }
         
         # If weights is missing...

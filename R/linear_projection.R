@@ -6,7 +6,7 @@
 #' @param subspace An k-by-n matrix of coordinates spanning, together with the origin,
 #'   the h-dimensional linear subspace.
 
-linear.projection <-
+linear_projection <-
     function(cloud, subspace) {
         
         # If cloud is a vector...

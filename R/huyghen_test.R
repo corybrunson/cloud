@@ -6,7 +6,7 @@
 #' @param weights An m-element vector of point masses (weights).
 #' @export
 
-huyghen.test <-
+huyghen_test <-
     function(point, cloud, weights) {
         
         # If weights is missing...
