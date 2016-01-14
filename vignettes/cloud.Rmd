@@ -1,11 +1,11 @@
 ---
 title: "Euclidean Cloud"
-author: "Cory Brunson, from Brigitte Le Roux and Henry Rouanet"
+author: "from Brigitte Le Roux and Henry Rouanet"
 date: "November 6, 2015"
 output: pdf_document
 ---
 
-This vignette (loosely or closely?) follows the treatment in Chapter 3 of [Le Roux and Rouanet's *Geometric Data Analysis*](http://www.springer.com/us/book/9781402022357), with drastically simplified exposition but employing the same example data.
+This vignette follows the treatment in Chapter 3 of [Le Roux and Rouanet's *Geometric Data Analysis*](http://www.springer.com/us/book/9781402022357), with drastically simplified exposition but employing the same example data.
 
 ```{r, echo=FALSE, results=FALSE, message=FALSE, warning=FALSE}
 library(devtools)
@@ -149,12 +149,17 @@ par(mfrow = c(1, 1))
 
 The *(orthogonal) projection* of a point cloud $M^J$ in a space $\mathcal{U}$ onto a subspace $\mathcal{H}$ is the cloud $H^J=\{H^j\}_{j\in J}$ consisting of its points' projections, and called the *projected cloud*. An important property of the projected cloud is that its barycenter $G'$ is the projection of the barycenter $G$ of $M^J$.
 
-### 3.2.1 Variance in a Direction
-
-The variances of the projected clouds of $M^J$ onto two equidimensional parallel subspaces $\mathcal{H}$ and $\mathcal{H}'$ are equal, and are called the *variance in the direction* of $\mathcal{H}$ (or of $\mathcal{H}'$). A special case is the variance in the direction of a line, which is equal to $$\sum_{j\in J}f_j\frac{\langle\overrightarrow{GM}^j\mid\overrightarrow{\alpha}\rangle^2}{\|\overrightarrow{\alpha}\|^2}$$ and is called the *variance of axis*.
-
 ```{r, echo=TRUE}
 axis <- rbind(c(0, 0), c(2, 1))
+print(affine_projection(cloud = Target, subspace = axis))
+projection_test(cloud = Target, subspace = axis)
+```
+
+### 3.2.1 Variance in a Direction
+
+The variances of the projected clouds of $M^J$ onto two equidimensional parallel subspaces $\mathcal{H}$ and $\mathcal{H}'$ are equal, and are called the *variance in the direction* of $\mathcal{H}$ (or of $\mathcal{H}'$), here denoted $\mathrm{Var}_\mathcal{H}M^J$. A special case is the variance in the direction of a line, equal to $$\mathrm{Var}_{\overrightarrow{\alpha}}M^J=\sum_{j\in J}f_j\frac{\langle\overrightarrow{GM}^j\mid\overrightarrow{\alpha}\rangle^2}{\|\overrightarrow{\alpha}\|^2}$$ and called the *variance of axis*.
+
+```{r, echo=TRUE}
 axis_var <- direction_variance(cloud = Target, weights = T_freq,
                                subspace = axis)
 print(axis_var)
@@ -203,7 +208,7 @@ huyghen_general_test(cloud = Target, weights = T_freq, subspace = axis)
 
 When a projected cloud $A^J$ (in a subspace $\mathcal{A}$) is used to model its preimage $M^J$, it is called a *fitted cloud*, and the vectors $\overrightarrow{A^jM^j}$, whose lengths are the residuals mentioned above, are called *residual deviations*. This leads to the geometric data--model--error formulation $$\forall j\in J\ \ M^j=A^j+\overrightarrow{A^jM^j},$$ where each $\overrightarrow{A^jM^j}$ is orthogonal to $\mathcal{A}$. Consequently, the cloud $R^J$ consisting of points $R^j=G'+\overrightarrow{H^jM^j}$ (where $G'$, as above, is the barycenter of $H^J$) depends only on the choice of $\mathcal{H}$. $R^J$ is called the *residual cloud*, and it is constructed so that $G$ is its barycenter. This yields the orthogonal decomposition $$\overrightarrow{GM^j}=\overrightarrow{GA^j}+\overrightarrow{GR^j}.$$
 
-It is straightforward to check that the variance of $R^J$ equals the residual square mean of $M^J$ with respect to $\mathcal{A}$. The distance formula, applied pointwise to the orthogonal decomposition, then yields the variance decomposition $${Var}M^J={Var}A^J+{Var}R^J$$ into the cloud's *total variance*, its *fitted variance*, and its *residual variance*.
+It is straightforward to check that the variance of $R^J$ equals the residual square mean of $M^J$ with respect to $\mathcal{A}$. The distance formula, applied pointwise to the orthogonal decomposition, then yields the *variance decomposition* $${Var}M^J={Var}A^J+{Var}R^J$$ into the cloud's *total variance*, its *fitted variance*, and its *residual variance*.
 
 ```{r, echo=TRUE}
 cloud_decomposition(cloud = Target, subspace = axis)
@@ -219,6 +224,48 @@ The linear formulation in the next section relies on several coordinatization sc
 - The *standard variable* $z^J=(z^j)_{j\in J}$ has *standard coordinates* $z^j=y^j/SDy^J$ and variance 1.
 - The *axial variable* $t^J=(t^j)_{j\in J}$ has *axial coordinates* $t^j=\langle\overrightarrow{GM^j}\mid\overrightarrow{\alpha}\rangle/\|\overrightarrow{\alpha}\|^2$ and variance ${Var}t^J=A^J/\|\overrightarrow{\alpha}\|^2$. The $t^j$ are the projections---*GDA* calls them the coordinates---of the $A^j$ onto $(G,\overrightarrow{\alpha})$.
 
-```{r}
-
+```{r, echo=TRUE}
+alpha <- affine_decomposition(axis)$linear_subspace
+coords <- sapply(c("covariant", "calibrated", "standard", "axial"),
+                 axis_coordinates, cloud = Target, dir_vec = alpha)
+print(coords)
 ```
+
+### 3.2.5 Linear Formalization
+
+The Euclidean space $\mathcal{U}$ has an underlying vector space $\mathcal{V}$. The aforedescribed coordinates can be understood in terms of linear mappings (homomorphisms) between $\mathcal{V}$ and two vector spaces derived from $J$: the space $\mathbb{R}^J$ of variables over $J$, and the space $\mathbb{R}_J$ of measures over $J$. The *variable covariant* ($\mathrm{Vac}$) homomorphism sends a vector $\overrightarrow{\alpha}\in\mathcal{V}$ to its covariant coordinates in $\mathbb{R}^J$; the *effect* ($\mathrm{Eff}$) homomorphism sends a measure (given as a vector of weights) in $\mathbb{R}_J$ to its evaluation on $M^J$ (the sum of the weighted points in the clouds, viewed as vectors). Both homomorphisms are taken with respect to a given point $P\in\mathcal{U}$, which by default takes the barycentric value $P=G$.
+
+```{r, echo=TRUE}
+print(vac(cloud = Target, point = P, dir_vec = alpha))
+print(eff(cloud = Target, point = P, coord_vec = coords[, "covariant"]))
+```
+
+The coordinate-preserving isomorphism $f_J:\mathbb{R}^J\to\mathbb{R}_J$, which associates variables with measures, reveals a duality between $\mathrm{Vac}$ and $\mathrm{Eff}$. Specifically, the composition homomorphism $\mathrm{Eff}^P\circ f_J$ is the adjoint $\mathrm{Vac}_P^\ast$ of $\mathrm{Vac}_P$. As these functions are implemented here, `eff` *is* the adjoint of `vac`. The result then follows directly from the assortativity of matrix multiplication.
+
+These maps compose to produce symmetric endomorphisms $$\mathrm{Som}=\mathrm{Eff}^P\circ f_J\circ\mathrm{Vac}_P:\mathcal{V}\rightarrow\mathcal{V}$$ of the vector space containing $M^J$ and $$\mathrm{Tom}=\mathrm{Vac}_P\circ\mathrm{Eff}^P\circ f_J:\mathbb{R}^J\rightarrow\mathbb{R}^J$$ of the coordinate space of $J$.
+
+```{r, echo=TRUE}
+print(rbind(alpha,
+            som(cloud = Target, point = P, dir_vec = alpha)))
+print(cbind(coords[, "covariant"],
+            tom(cloud = Target, point = P, coord_vec = coords[, "covariant"])))
+```
+
+These endomorphisms will be important to performing the central operation of geometric data analysis: identifying the principal directions of a point cloud. In particular, this relies on the relationship between the endomorphism $\mathrm{Som}$ and the directional variance of $M^J$: $$\mathrm{Var}_{\overrightarrow{\alpha}}M^J=\frac{\|\mathrm{Vac}(\overrightarrow{\alpha})\|^2}{\|\overrightarrow{\alpha}\|^2}=\frac{\langle\mathrm{Som}(\overrightarrow{\alpha})\mid\overrightarrow{\alpha}\rangle}{\|\overrightarrow{\alpha}\|^2}$$ This property follows from the variable definitions and from the definition of $\mathrm{Som}$, which implies that $\langle\mathrm{Som}(\overrightarrow{\alpha})\mid\overrightarrow{\alpha}\rangle=\|\mathrm{Vac}(\overrightarrow{\alpha})\|^2$.
+
+## 3.3 Principal Directions of a Cloud
+
+The **problem of principal directions** is to approximate a point cloud (in a vector space of dimension, say, $L$) in a vector space of lower dimension (say, $L'$. This entails identifying successive directions in $\mathcal{V}$ so that the projected cloud onto each subspace orthogonal to the first $\ell-1$ directions has maximum fitted variance in the $\ell^\text{th}$ direction---or, equivalently (by the variance decomposition), so that each projection has minimum residual variance.
+
+### 3.3.1 Principal Axes
+
+As just observed, questions of directional variance can be recast in terms of $\mathrm{Som}$. Specifically, $\|\mathrm{Vac}(\overrightarrow{\alpha})\|/\|\overrightarrow{\alpha}\|$ is maximized in the direction of the first eigenvector of $\mathrm{Som}$---or, if the first eigenvalue is multiple, in any direction of the first eigenspace. This leads to the **principal direction equation** of the direction vectors of the principal lines of $M^J$ with the eigenvectors of $\mathrm{Som}$: $$\mathrm{Som}(\overrightarrow{\alpha}_\ell)=\lambda_\ell\overrightarrow{\alpha}_\ell$$
+
+The proof proceeds inductively on $L$ and by construction along sequential dimension-one projections, with special attention given to the special case of eigenvalues of multiple order. These cases aside, the proof relies on one key observation: Let $A^J_1$ be the projected cloud along the first eigenvector of $\mathrm{Som}$, with residual cloud $R^J_1$. The orthogonal decomposition in Section 3.2.3 and the linearity of $\mathrm{Vac}$ yield the endomorphism decomposition $$\mathrm{Vac}=\mathrm{Vac}'+\mathrm{Vac}_1,$$ where $\mathrm{Vac}'(\overrightarrow{\alpha})=(\langle\overrightarrow{GR^j_1}\mid\overrightarrow{\alpha}\rangle)_{j\in J}$ and $\mathrm{Vac}_1(\overrightarrow{\alpha})=(\langle\overrightarrow{GA^j_1}\mid\overrightarrow{\alpha}\rangle)_{j\in J}$, as well as a similar decomposition of $\mathrm{Vac}^\ast$. These combine to give $$\mathrm{Som}=\mathrm{Som}'+\mathrm{Som}_1,$$ which, provided the nonzero eignvectors of $\mathrm{Som}$ are orthonormal, partitions these eigenvectors into those of $\mathrm{Som}'$ ($\ell-1$ of them) and those of $\mathrm{Som}_1$ (one). The single eigenvector of $\mathrm{Som}_1$ has the greatest eigenvalue, $\lambda_1$, of the original family, so the greatest eigenvalue of $\mathrm{Som}'$ is $\lambda_2$. From there the proof continues until all dimensions are exhausted.
+
+Whereas each step identifies a principal vector orthogonal to the space spanned by what will be the remaining principal vectors, *all of the principal vectors (hence the principal directions) are pairwise orthogonal*. Additionally, since the relationship between the residual variance and the first eigenvalue is repeated at each step, the proof provides the **principal breakdown of variance**: $$\mathrm{Var}M^J=\sum_{\ell=1}^L\lambda_\ell$$
+
+Finally, though the proof involved only variances of one-dimensional directions, the result can be extended to the **hereditary property** of higher-dimensional principal directions: If $\lambda_{L'}>\lambda_{L'-1}$ (strict inequality) for some $1\leq L'\leq L$, then the **$first principal $L'$-dimensional direction** contains all first principal lower-dimensional directions. This means that each first principal $L'$-dimensional direction is the span of the first $L'$ principal one-dimensional directions (or, in case of multiple eigenvalues, the first prinicple lowest-dimensional directions whose dimensions sum to $L'$).
+
+### 3.3.2 Principal Variables
+
